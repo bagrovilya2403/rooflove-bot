@@ -90,7 +90,7 @@ def save_lead(lead):
 
 def notify_manager(lead):
     text = (
-        "🔔 <b>НОВАЯ ЗАЯВКА С САЙТА</b>\n"
+        "<b>НОВАЯ ЗАЯВКА С САЙТА</b>\n"
         "Источник: {source}\n"
         "Клиент: {name}\n"
         "Телефон: {phone}\n"
@@ -104,10 +104,10 @@ def greet(chat_id, first_name, payload):
     label = source_label(payload)
     extra = ""
     if payload and payload.startswith("quiz_"):
-        extra = ("\n🎁 Вижу ваш сертификат <b>{}</b> - скидка 2 000 ₽ закреплена "
+        extra = ("\nВижу ваш сертификат <b>{}</b> - скидка 2 000 ₽ закреплена "
                  "за вами, применю её к любому расчёту.").format(payload[5:])
     text = (
-        "Здравствуйте, {name}! ❤️ Я бот ROOF LOVE - свидания на крыше "
+        "Здравствуйте, {name}! Я бот ROOF LOVE - свидания на крыше "
         "в прозрачном куполе на высоте 25 этажа.\n\n"
         "Вы пришли сюда: {label}.{extra}\n\n"
         "Нажмите кнопку ниже, чтобы отправить контакт - координатор перезвонит "
@@ -138,7 +138,7 @@ def handle_message(msg):
         save_lead(lead)
         notify_manager(lead)
         send(chat_id,
-             "Спасибо! ✅ Контакт получен. Координатор свяжется с вами в течение 10 минут "
+             "Спасибо! Контакт получен. Координатор свяжется с вами в течение 10 минут "
              "(с 9:00 до 23:00). А пока могу прислать свободные даты - просто напишите даты.",
              reply_markup=hide_keyboard())
         return
@@ -164,4 +164,63 @@ def handle_message(msg):
     # Подсказки
     if text in ("/help", "/info"):
         send(chat_id,
-             "Я б
+             "Я бот ROOF LOVE.\n"
+             "• даты - пришлю ближайшие свободные слоты;\n"
+             "• цена - расскажу про тарифы (Light 8 900 ₽ / Premium 15 900 ₽ / VIP 28 900 ₽);\n"
+             "• кнопка Отправить контакт - оставит заявку координатору.",
+             reply_markup=contact_keyboard())
+        return
+
+    # Любой текст: ответ клиенту и уведомление менеджеру
+    low = text.lower()
+    if "дат" in low:
+        reply = ("Ближайшие свободные слоты: сегодня 19:30 (закат) и завтра 21:00 (ночь в огнях). "
+                 "Хотите закрепить один из них? Нажмите кнопку контакта - и координатор забронирует.")
+    elif "цен" in low or "стоим" in low or "тариф" in low:
+        reply = ("Тарифы: Light - 8 900 ₽, Premium - 15 900 ₽ (хит), VIP / Marry Me - 28 900 ₽. "
+                 "На сайте есть калькулятор: формат + длительность + опции, цена считается мгновенно. "
+                 "Плюс у гостей квиза - сертификат -2 000 ₽.")
+    else:
+        reply = ("Принял! Передал ваш вопрос координатору - ответим здесь же в течение 5-10 минут. "
+                 "Если срочно - нажмите кнопку Отправить контакт, и мы перезвоним.")
+    send(chat_id, reply, reply_markup=contact_keyboard())
+
+    st = USER_STATE.get(chat_id, {})
+    lead = {
+        "source": source_label(st.get("source")),
+        "name": first_name or "не указано",
+        "phone": "ожидает кнопку контакта",
+        "comment": "сообщение клиента: " + text[:300],
+        "ts": datetime.now().strftime("%d.%m.%Y %H:%M"),
+    }
+    save_lead(lead)
+    notify_manager(lead)
+
+
+def main():
+    me = api("getMe")
+    if not me.get("ok"):
+        raise SystemExit("Неверный токен или нет сети: getMe не ответил.")
+    log.info("Bot started: @%s", me["result"].get("username"))
+    send(MANAGER_CHAT_ID, "Бот ROOF LOVE запущен и принимает заявки с сайта.")
+
+    offset = 0
+    while True:
+        data = api("getUpdates", offset=offset, timeout=POLL_TIMEOUT,
+                   allowed_updates=json.dumps(["message"]))
+        updates = data.get("result") or []
+        for upd in updates:
+            offset = max(offset, upd.get("update_id", 0) + 1)
+            msg = upd.get("message")
+            if not msg:
+                continue
+            try:
+                handle_message(msg)
+            except Exception:
+                log.exception("Error handling update %s", upd.get("update_id"))
+        if not updates:
+            time.sleep(1)
+
+
+if __name__ == "__main__":
+    main()
