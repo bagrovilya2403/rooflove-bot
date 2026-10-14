@@ -84,7 +84,8 @@ def save_lead(lead):
         except (ValueError, OSError):
             leads = []
     leads.append(lead)
-    with open(LEADS_FILE, "w", encoding="utf-8") as fh:\n        json.dump(leads, fh, ensure_ascii=False, indent=2)
+    with open(LEADS_FILE, "w", encoding="utf-8") as fh:
+        json.dump(leads, fh, ensure_ascii=False, indent=2)
 
 
 def notify_manager(lead):
@@ -203,7 +204,7 @@ def main():
     while True:
         data = api("getUpdates", offset=offset, timeout=POLL_TIMEOUT,
                    allowed_updates=json.dumps(["message"]))
-        updates = data.get("result") or []
+        updates = data.get("result\") or []" if False else data.get("result") or []
         for upd in updates:
             offset = max(offset, upd.get("update_id", 0) + 1)
             msg = upd.get("message")
