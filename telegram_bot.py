@@ -104,7 +104,7 @@ def greet(chat_id, first_name, payload):
     label = source_label(payload)
     extra = ""
     if payload and payload.startswith("quiz_"):
-        extra = ("\nВижу ваш сертификат <b>{}</b> - скидка 2 000 руб. закреплена "
+        extra = ("\nВижу ваш сертификат <b>{}</b> - скидка 2 000 ₽ закреплена "
                  "за вами, применю её к любому расчёту.").format(payload[5:])
     text = (
         "Здравствуйте, {name}! Я бот ROOF LOVE - свидания на крыше "
@@ -162,9 +162,9 @@ def handle_message(msg):
     if text in ("/help", "/info"):
         send(chat_id,
              "Я бот ROOF LOVE.\n"
-             "- даты - пришлю ближайшие свободные слоты;\n"
-             "- цена - расскажу про тарифы (Light 8 900 / Premium 15 900 / VIP 28 900);\n"
-             "- кнопка Отправить контакт - оставит заявку координатору.",
+             "• даты - пришлю ближайшие свободные слоты;\n"
+             "• цена - расскажу про тарифы (Light 8 900 ₽ / Premium 15 900 ₽ / VIP 28 900 ₽);\n"
+             "• кнопка Отправить контакт - оставит заявку координатору.",
              reply_markup=contact_keyboard())
         return
 
@@ -173,9 +173,9 @@ def handle_message(msg):
         reply = ("Ближайшие свободные слоты: сегодня 19:30 (закат) и завтра 21:00 (ночь в огнях). "
                  "Хотите закрепить один из них? Нажмите кнопку контакта - и координатор забронирует.")
     elif "цен" in low or "стоим" in low or "тариф" in low:
-        reply = ("Тарифы: Light - 8 900 руб., Premium - 15 900 руб. (хит), VIP / Marry Me - 28 900 руб. "
+        reply = ("Тарифы: Light - 8 900 ₽, Premium - 15 900 ₽ (хит), VIP / Marry Me - 28 900 ₽. "
                  "На сайте есть калькулятор: формат + длительность + опции, цена считается мгновенно. "
-                 "Плюс у гостей квиза - сертификат -2 000 руб.")
+                 "Плюс у гостей квиза - сертификат -2 000 ₽.")
     else:
         reply = ("Принял! Передал ваш вопрос координатору - ответим здесь же в течение 5-10 минут. "
                  "Если срочно - нажмите кнопку Отправить контакт, и мы перезвоним.")
@@ -204,7 +204,7 @@ def main():
     while True:
         data = api("getUpdates", offset=offset, timeout=POLL_TIMEOUT,
                    allowed_updates=json.dumps(["message"]))
-        updates = data.get("result\") or []" if False else data.get("result") or []
+        updates = data.get("result") or []
         for upd in updates:
             offset = max(offset, upd.get("update_id", 0) + 1)
             msg = upd.get("message")
