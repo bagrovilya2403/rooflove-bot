@@ -84,8 +84,7 @@ def save_lead(lead):
         except (ValueError, OSError):
             leads = []
     leads.append(lead)
-    with open(LEADS_FILE, "w", encoding="utf-8") as fh:
-        json.dump(leads, fh, ensure_ascii=False, indent=2)
+    with open(LEADS_FILE, "w", encoding="utf-8") as fh:\n        json.dump(leads, fh, ensure_ascii=False, indent=2)
 
 
 def notify_manager(lead):
@@ -104,7 +103,7 @@ def greet(chat_id, first_name, payload):
     label = source_label(payload)
     extra = ""
     if payload and payload.startswith("quiz_"):
-        extra = ("\nВижу ваш сертификат <b>{}</b> - скидка 2 000 ₽ закреплена "
+        extra = ("\nВижу ваш сертификат <b>{}</b> - скидка 2 000 руб. закреплена "
                  "за вами, применю её к любому расчёту.").format(payload[5:])
     text = (
         "Здравствуйте, {name}! Я бот ROOF LOVE - свидания на крыше "
@@ -124,7 +123,6 @@ def handle_message(msg):
     first_name = user.get("first_name", "")
     text = (msg.get("text") or "").strip()
 
-    # Клиент нажал кнопку Отправить контакт
     if "contact" in msg:
         phone = msg["contact"].get("phone_number", "-")
         st = USER_STATE.get(chat_id, {})
@@ -143,7 +141,6 @@ def handle_message(msg):
              reply_markup=hide_keyboard())
         return
 
-    # /start с меткой источника с сайта
     if text.startswith("/start"):
         payload = text.split(" ", 1)[1].strip() if " " in text else ""
         USER_STATE[chat_id] = {"source": payload, "name": first_name,
@@ -161,25 +158,23 @@ def handle_message(msg):
             notify_manager(lead)
         return
 
-    # Подсказки
     if text in ("/help", "/info"):
         send(chat_id,
              "Я бот ROOF LOVE.\n"
-             "• даты - пришлю ближайшие свободные слоты;\n"
-             "• цена - расскажу про тарифы (Light 8 900 ₽ / Premium 15 900 ₽ / VIP 28 900 ₽);\n"
-             "• кнопка Отправить контакт - оставит заявку координатору.",
+             "- даты - пришлю ближайшие свободные слоты;\n"
+             "- цена - расскажу про тарифы (Light 8 900 / Premium 15 900 / VIP 28 900);\n"
+             "- кнопка Отправить контакт - оставит заявку координатору.",
              reply_markup=contact_keyboard())
         return
 
-    # Любой текст: ответ клиенту и уведомление менеджеру
     low = text.lower()
     if "дат" in low:
         reply = ("Ближайшие свободные слоты: сегодня 19:30 (закат) и завтра 21:00 (ночь в огнях). "
                  "Хотите закрепить один из них? Нажмите кнопку контакта - и координатор забронирует.")
     elif "цен" in low or "стоим" in low or "тариф" in low:
-        reply = ("Тарифы: Light - 8 900 ₽, Premium - 15 900 ₽ (хит), VIP / Marry Me - 28 900 ₽. "
+        reply = ("Тарифы: Light - 8 900 руб., Premium - 15 900 руб. (хит), VIP / Marry Me - 28 900 руб. "
                  "На сайте есть калькулятор: формат + длительность + опции, цена считается мгновенно. "
-                 "Плюс у гостей квиза - сертификат -2 000 ₽.")
+                 "Плюс у гостей квиза - сертификат -2 000 руб.")
     else:
         reply = ("Принял! Передал ваш вопрос координатору - ответим здесь же в течение 5-10 минут. "
                  "Если срочно - нажмите кнопку Отправить контакт, и мы перезвоним.")
